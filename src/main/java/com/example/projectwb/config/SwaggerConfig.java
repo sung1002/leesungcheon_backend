@@ -12,8 +12,8 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         Info info = new Info()
-            .title("Project WB API 명세서")
-            .version("v1.0.0")
+            .title("Banking API 명세서")
+            .version("v1.1.0")
             .description("계좌 거래내역 관리, 입출금, 이체 서비스를 제공하는 API 목록");
 
         return new OpenAPI()
