@@ -16,14 +16,14 @@ public class CustomTransactionRepositoryImpl implements CustomTransactionReposit
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public BigDecimal calculateDailySum(Long accountId, Transaction.TransactionType type,
+    public BigDecimal calculateDailySum(String accountNumber, Transaction.TransactionType type,
         LocalDateTime startOfDay, LocalDateTime endOfDay) {
 
         BigDecimal sum = queryFactory
             .select(transactionJpaEntity.amount.sum())
             .from(transactionJpaEntity)
             .where(
-                transactionJpaEntity.sourceAccountId.eq(accountId),
+                transactionJpaEntity.sourceAccountNumber.eq(accountNumber),
                 transactionJpaEntity.type.eq(type),
                 transactionJpaEntity.transactionDate.between(startOfDay, endOfDay)
             )

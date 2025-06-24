@@ -38,38 +38,37 @@ public class SendMoneyService implements SendMoneyUseCase {
     @Override
     public boolean sendMoney(SendMoneyCommand command) {
 
-        if (command.sourceAccountId() == null && command.targetAccountId() != null) {
-            return distributedLockPort.withLock("account:" + command.targetAccountId(),
+        if (command.sourceAccountNumber() == null && command.targetAccountNumber() != null) {
+            return distributedLockPort.withLock("account:" + command.targetAccountNumber(),
                 () -> processTransaction(command));
         }
 
-        if (command.sourceAccountId() != null && command.targetAccountId() == null) {
-            return distributedLockPort.withLock("account:" + command.sourceAccountId(),
+        if (command.sourceAccountNumber() != null && command.targetAccountNumber() == null) {
+            return distributedLockPort.withLock("account:" + command.sourceAccountNumber(),
                 () -> processTransaction(command));
         }
 
-        if (command.sourceAccountId() != null && command.targetAccountId() != null) {
-            Long firstLockId = Math.min(command.sourceAccountId(), command.targetAccountId());
-            Long secondLockId = Math.max(command.sourceAccountId(), command.targetAccountId());
+        if (command.sourceAccountNumber() != null && command.targetAccountNumber() != null) {
+            String firstLockKey = command.sourceAccountNumber().compareTo(command.targetAccountNumber()) < 0 ? command.sourceAccountNumber() : command.targetAccountNumber();
+            String secondLockKey = command.sourceAccountNumber().compareTo(command.targetAccountNumber()) < 0 ? command.targetAccountNumber() : command.sourceAccountNumber();
 
-            Supplier<Boolean> process = () -> distributedLockPort.withLock(
-                "account:" + secondLockId, () -> processTransaction(command));
-            return distributedLockPort.withLock("account:" + firstLockId, process);
+            Supplier<Boolean> process = () -> distributedLockPort.withLock("account:" + secondLockKey, () -> processTransaction(command));
+            return distributedLockPort.withLock("account:" + firstLockKey, process);
         }
         throw new InvalidTransactionRequestException("잘못된 거래 요청입니다.");
     }
 
     private boolean processTransaction(SendMoneyCommand command) {
 
-        if (command.sourceAccountId() == null) {
+        if (command.sourceAccountNumber() == null) {
             return handleDeposit(command);
         }
 
-        Account sourceAccount = loadAccountPort.loadAccount(command.sourceAccountId())
+        Account sourceAccount = loadAccountPort.loadAccountByNumber(command.sourceAccountNumber())
             .orElseThrow(() -> new AccountNotFoundException(
-                "출금 계좌를 찾을 수 없습니다: " + command.sourceAccountId()));
+                "출금 계좌를 찾을 수 없습니다: " + command.sourceAccountNumber()));
 
-        if (command.targetAccountId() == null) {
+        if (command.targetAccountNumber() == null) {
             return handleWithdrawal(command, sourceAccount);
         }
 
@@ -77,15 +76,15 @@ public class SendMoneyService implements SendMoneyUseCase {
     }
 
     private boolean handleDeposit(SendMoneyCommand command) {
-        Account targetAccount = loadAccountPort.loadAccount(command.targetAccountId())
+        Account targetAccount = loadAccountPort.loadAccountByNumber(command.targetAccountNumber())
             .orElseThrow(() -> new AccountNotFoundException(
-                "입금 계좌를 찾을 수 없습니다: " + command.targetAccountId()));
+                "입금 계좌를 찾을 수 없습니다: " + command.targetAccountNumber()));
 
         targetAccount.deposit(command.amount());
         updateAccountPort.updateAccount(targetAccount);
 
         registerTransactionPort.saveTransaction(Transaction.builder()
-            .targetAccountId(targetAccount.getId())
+            .targetAccountNumber(targetAccount.getAccountNumber())
             .amount(command.amount())
             .type(TransactionType.DEPOSIT)
             .transactionDate(LocalDateTime.now())
@@ -95,7 +94,7 @@ public class SendMoneyService implements SendMoneyUseCase {
     }
 
     private boolean handleWithdrawal(SendMoneyCommand command, Account sourceAccount) {
-        checkDailyLimit(sourceAccount.getId(), command.amount(), TransactionType.WITHDRAWAL,
+        checkDailyLimit(sourceAccount.getAccountNumber(), command.amount(), TransactionType.WITHDRAWAL,
             WITHDRAWAL_DAILY_LIMIT);
 
         boolean success = sourceAccount.withdraw(command.amount());
@@ -105,7 +104,7 @@ public class SendMoneyService implements SendMoneyUseCase {
 
         updateAccountPort.updateAccount(sourceAccount);
         registerTransactionPort.saveTransaction(Transaction.builder()
-            .sourceAccountId(sourceAccount.getId())
+            .sourceAccountNumber(sourceAccount.getAccountNumber())
             .amount(command.amount())
             .type(TransactionType.WITHDRAWAL)
             .transactionDate(LocalDateTime.now())
@@ -114,11 +113,11 @@ public class SendMoneyService implements SendMoneyUseCase {
     }
 
     private boolean handleTransfer(SendMoneyCommand command, Account sourceAccount) {
-        checkDailyLimit(sourceAccount.getId(), command.amount(), TransactionType.TRANSFER,
+        checkDailyLimit(sourceAccount.getAccountNumber(), command.amount(), TransactionType.TRANSFER,
             TRANSFER_DAILY_LIMIT);
 
-        Account targetAccount = loadAccountPort.loadAccount(command.targetAccountId())
-            .orElseThrow(() -> new AccountNotFoundException("이체 대상 계좌를 찾을 수 없습니다."));
+        Account targetAccount = loadAccountPort.loadAccountByNumber(command.targetAccountNumber())
+            .orElseThrow(() -> new AccountNotFoundException("이체 대상 계좌를 찾을 수 없습니다." + command.targetAccountNumber()));
 
         BigDecimal fee = command.amount().multiply(TRANSFER_FEE_RATE);
         BigDecimal totalAmount = command.amount().add(fee);
@@ -134,8 +133,8 @@ public class SendMoneyService implements SendMoneyUseCase {
         updateAccountPort.updateAccount(targetAccount);
 
         registerTransactionPort.saveTransaction(Transaction.builder()
-            .sourceAccountId(sourceAccount.getId())
-            .targetAccountId(targetAccount.getId())
+            .sourceAccountNumber(sourceAccount.getAccountNumber())
+            .targetAccountNumber(targetAccount.getAccountNumber())
             .amount(command.amount())
             .fee(fee)
             .type(TransactionType.TRANSFER)
@@ -144,11 +143,11 @@ public class SendMoneyService implements SendMoneyUseCase {
         return true;
     }
 
-    private void checkDailyLimit(Long accountId, BigDecimal amount, TransactionType type,
+    private void checkDailyLimit(String accountNumber, BigDecimal amount, TransactionType type,
         BigDecimal limit) {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
-        BigDecimal todayTotal = loadTransactionPort.getDailyTransactionSum(accountId, type,
+        BigDecimal todayTotal = loadTransactionPort.getDailyTransactionSum(accountNumber, type,
             startOfDay, endOfDay);
 
         if (todayTotal.add(amount).compareTo(limit) > 0) {

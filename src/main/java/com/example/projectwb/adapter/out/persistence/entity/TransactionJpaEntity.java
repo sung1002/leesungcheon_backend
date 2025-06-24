@@ -26,10 +26,10 @@ public class TransactionJpaEntity {
     private Long id;
 
     @Column
-    private Long sourceAccountId;
+    private String sourceAccountNumber;
 
     @Column
-    private Long targetAccountId;
+    private String targetAccountNumber;
 
     @Column(nullable = false)
     private BigDecimal amount;
@@ -44,10 +44,10 @@ public class TransactionJpaEntity {
     @Column(nullable = false)
     private LocalDateTime transactionDate;
 
-    public TransactionJpaEntity(Long sourceAccountId, Long targetAccountId, BigDecimal amount,
+    public TransactionJpaEntity(String sourceAccountNumber, String targetAccountNumber, BigDecimal amount,
         BigDecimal fee, Transaction.TransactionType type, LocalDateTime transactionDate) {
-        this.sourceAccountId = sourceAccountId;
-        this.targetAccountId = targetAccountId;
+        this.sourceAccountNumber = sourceAccountNumber;
+        this.targetAccountNumber = targetAccountNumber;
         this.amount = amount;
         this.fee = fee;
         this.type = type;

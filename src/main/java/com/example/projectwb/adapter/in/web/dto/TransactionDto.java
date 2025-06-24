@@ -11,41 +11,41 @@ import lombok.Builder;
 public class TransactionDto {
 
     public record DepositRequest(
-        @NotNull Long targetAccountId,
+        @NotNull String targetAccountNumber,
         @NotNull @Positive BigDecimal amount
     ) {
 
         public SendMoneyUseCase.SendMoneyCommand toCommand() {
-            return new SendMoneyUseCase.SendMoneyCommand(null, targetAccountId, amount);
+            return new SendMoneyUseCase.SendMoneyCommand(null, targetAccountNumber, amount);
         }
     }
 
     public record WithdrawRequest(
-        @NotNull Long sourceAccountId,
+        @NotNull String sourceAccountNumber,
         @NotNull @Positive BigDecimal amount
     ) {
 
         public SendMoneyUseCase.SendMoneyCommand toCommand() {
-            return new SendMoneyUseCase.SendMoneyCommand(sourceAccountId, null, amount);
+            return new SendMoneyUseCase.SendMoneyCommand(sourceAccountNumber, null, amount);
         }
     }
 
     public record TransferRequest(
-        @NotNull Long sourceAccountId,
-        @NotNull Long targetAccountId,
+        @NotNull String sourceAccountNumber,
+        @NotNull String targetAccountNumber,
         @NotNull @Positive BigDecimal amount
     ) {
 
         public SendMoneyUseCase.SendMoneyCommand toCommand() {
-            return new SendMoneyUseCase.SendMoneyCommand(sourceAccountId, targetAccountId, amount);
+            return new SendMoneyUseCase.SendMoneyCommand(sourceAccountNumber, targetAccountNumber, amount);
         }
     }
 
     @Builder
     public record HistoryResponse(
         Long transactionId,
-        Long sourceAccountId,
-        Long targetAccountId,
+        String sourceAccountNumber,
+        String targetAccountNumber,
         BigDecimal amount,
         BigDecimal fee,
         String type,
@@ -55,8 +55,8 @@ public class TransactionDto {
         public static HistoryResponse from(Transaction transaction) {
             return HistoryResponse.builder()
                 .transactionId(transaction.getId())
-                .sourceAccountId(transaction.getSourceAccountId())
-                .targetAccountId(transaction.getTargetAccountId())
+                .sourceAccountNumber(transaction.getSourceAccountNumber())
+                .targetAccountNumber(transaction.getTargetAccountNumber())
                 .amount(transaction.getAmount())
                 .fee(transaction.getFee())
                 .type(transaction.getType().name())

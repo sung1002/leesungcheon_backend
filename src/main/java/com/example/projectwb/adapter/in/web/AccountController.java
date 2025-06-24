@@ -91,9 +91,9 @@ public class AccountController {
 
     @Operation(summary = "거래 내역 조회", description = "특정 계좌의 모든 거래 내역을 최신순으로 조회합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
-    @GetMapping("/{accountId}/history")
-    public ResponseEntity<List<HistoryResponse>> getHistory(@PathVariable Long accountId) {
-        List<Transaction> history = getAccountHistoryQuery.getAccountHistory(accountId);
+    @GetMapping("/{accountNumber}/history")
+    public ResponseEntity<List<HistoryResponse>> getHistory(@PathVariable String accountNumber) {
+        List<Transaction> history = getAccountHistoryQuery.getAccountHistory(accountNumber);
         List<TransactionDto.HistoryResponse> response = history.stream()
             .map(TransactionDto.HistoryResponse::from)
             .collect(Collectors.toList());

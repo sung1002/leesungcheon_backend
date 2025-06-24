@@ -16,7 +16,7 @@ public class GetAccountHistoryService implements GetAccountHistoryQuery {
     private final LoadTransactionPort loadTransactionPort;
 
     @Override
-    public List<Transaction> getAccountHistory(Long accountId) {
-        return loadTransactionPort.findTransactionsByAccountId(accountId);
+    public List<Transaction> getAccountHistory(String accountNumber) {
+        return loadTransactionPort.findTransactionsByAccountNumber(accountNumber);
     }
 }

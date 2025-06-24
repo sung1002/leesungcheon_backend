@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public interface CustomTransactionRepository {
 
     BigDecimal calculateDailySum(
-        Long accountId,
+        String accountNumber,
         Transaction.TransactionType type,
         LocalDateTime startDate,
         LocalDateTime endDate

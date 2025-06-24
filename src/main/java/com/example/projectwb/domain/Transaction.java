@@ -10,8 +10,8 @@ import lombok.Getter;
 public class Transaction {
 
     private Long id;
-    private Long sourceAccountId;
-    private Long targetAccountId;
+    private String sourceAccountNumber;
+    private String targetAccountNumber;
     private BigDecimal amount;
     private BigDecimal fee;
     private TransactionType type;

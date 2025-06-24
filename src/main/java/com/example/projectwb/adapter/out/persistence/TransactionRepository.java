@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface TransactionRepository extends JpaRepository<TransactionJpaEntity, Long>,
     CustomTransactionRepository {
 
-    List<TransactionJpaEntity> findBySourceAccountIdOrTargetAccountIdOrderByTransactionDateDesc(
-        Long sourceId, Long targetId);
+    List<TransactionJpaEntity> findBySourceAccountNumberOrTargetAccountNumberOrderByTransactionDateDesc(
+        String sourceAccountNumber, String targetAccountNumber);
 }

@@ -8,8 +8,8 @@ import java.util.List;
 
 public interface LoadTransactionPort {
 
-    List<Transaction> findTransactionsByAccountId(Long accountId);
+    List<Transaction> findTransactionsByAccountNumber(String accountNumber);
 
-    BigDecimal getDailyTransactionSum(Long accountId, TransactionType transactionType,
+    BigDecimal getDailyTransactionSum(String accountNumber, TransactionType transactionType,
         LocalDateTime startDate, LocalDateTime endDate);
 }

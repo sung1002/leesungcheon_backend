@@ -47,20 +47,20 @@ class SendMoneyServiceTest {
     @DisplayName("계좌 이체 성공")
     void transfer_success() {
         // given
-        long sourceAccountId = 1L;
-        long targetAccountId = 2L;
+        String sourceAccountNumber = "1111-1111-1111";
+        String targetAccountNumber = "2222-2222-2222";
         BigDecimal amount = new BigDecimal("5000");
 
-        SendMoneyCommand command = new SendMoneyCommand(sourceAccountId, targetAccountId, amount);
+        SendMoneyCommand command = new SendMoneyCommand(sourceAccountNumber, targetAccountNumber, amount);
 
-        Account sourceAccount = new Account(sourceAccountId, "1111-1111-1111",
+        Account sourceAccount = new Account(1L, "1111-1111-1111",
             new BigDecimal("10000"), "일성천");
-        Account targetAccount = new Account(targetAccountId, "2222-2222-2222",
+        Account targetAccount = new Account(2L, "2222-2222-2222",
             new BigDecimal("10000"), "이성천");
 
-        given(loadAccountPort.loadAccount(sourceAccountId)).willReturn(Optional.of(sourceAccount));
-        given(loadAccountPort.loadAccount(targetAccountId)).willReturn(Optional.of(targetAccount));
-        given(loadTransactionPort.getDailyTransactionSum(eq(sourceAccountId),
+        given(loadAccountPort.loadAccountByNumber(sourceAccountNumber)).willReturn(Optional.of(sourceAccount));
+        given(loadAccountPort.loadAccountByNumber(targetAccountNumber)).willReturn(Optional.of(targetAccount));
+        given(loadTransactionPort.getDailyTransactionSum(eq(sourceAccountNumber),
             any(Transaction.TransactionType.class), any(LocalDateTime.class),
             any(LocalDateTime.class)))
             .willReturn(BigDecimal.ZERO);
@@ -87,17 +87,17 @@ class SendMoneyServiceTest {
     @DisplayName("일일 이체 한도 초과 시 이체 실패")
     void transfer_fail_daily_limit_exceeded() {
         // given
-        long sourceAccountId = 1L;
-        long targetAccountId = 2L;
+        String sourceAccountNumber = "1111-1111-1111";
+        String targetAccountNumber = "2222-2222-2222";
         BigDecimal amount = new BigDecimal("1000000");
 
-        SendMoneyCommand command = new SendMoneyCommand(sourceAccountId, targetAccountId, amount);
-        Account sourceAccount = new Account(sourceAccountId, "1111-1111-1111",
+        SendMoneyCommand command = new SendMoneyCommand(sourceAccountNumber, targetAccountNumber, amount);
+        Account sourceAccount = new Account(1L, "1111-1111-1111",
             new BigDecimal("5000000"), "이성천");
 
-        given(loadAccountPort.loadAccount(sourceAccountId)).willReturn(Optional.of(sourceAccount));
+        given(loadAccountPort.loadAccountByNumber(sourceAccountNumber)).willReturn(Optional.of(sourceAccount));
 
-        given(loadTransactionPort.getDailyTransactionSum(eq(sourceAccountId),
+        given(loadTransactionPort.getDailyTransactionSum(eq(sourceAccountNumber),
             eq(Transaction.TransactionType.TRANSFER), any(LocalDateTime.class),
             any(LocalDateTime.class)))
             .willReturn(new BigDecimal("2500000"));
@@ -115,17 +115,17 @@ class SendMoneyServiceTest {
     @DisplayName("일일 출금 한도 초과 시 출금 실패")
     void withdraw_fail_daily_limit_exceeded() {
         // given
-        long sourceAccountId = 1L;
+        String sourceAccountNumber = "1111-1111-1111";
         BigDecimal amount = new BigDecimal("300000");
 
-        SendMoneyCommand command = new SendMoneyCommand(sourceAccountId, null, amount);
+        SendMoneyCommand command = new SendMoneyCommand(sourceAccountNumber, null, amount);
 
-        Account sourceAccount = new Account(sourceAccountId, "1111-1111-1111",
+        Account sourceAccount = new Account(1L, "1111-1111-1111",
             new BigDecimal("2000000"), "이성천");
 
-        given(loadAccountPort.loadAccount(sourceAccountId)).willReturn(Optional.of(sourceAccount));
+        given(loadAccountPort.loadAccountByNumber(sourceAccountNumber)).willReturn(Optional.of(sourceAccount));
         given(loadTransactionPort.getDailyTransactionSum(
-            eq(sourceAccountId),
+            eq(sourceAccountNumber),
             eq(Transaction.TransactionType.WITHDRAWAL),
             any(LocalDateTime.class),
             any(LocalDateTime.class)))

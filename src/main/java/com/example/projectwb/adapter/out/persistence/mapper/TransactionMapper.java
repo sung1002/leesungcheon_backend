@@ -9,8 +9,8 @@ public class TransactionMapper {
     public Transaction mapToDomain(TransactionJpaEntity entity) {
         return Transaction.builder()
             .id(entity.getId())
-            .sourceAccountId(entity.getSourceAccountId())
-            .targetAccountId(entity.getTargetAccountId())
+            .sourceAccountNumber(entity.getSourceAccountNumber())
+            .targetAccountNumber(entity.getTargetAccountNumber())
             .amount(entity.getAmount())
             .fee(entity.getFee())
             .type(entity.getType())
@@ -20,8 +20,8 @@ public class TransactionMapper {
 
     public TransactionJpaEntity mapToEntity(Transaction transaction) {
         return new TransactionJpaEntity(
-            transaction.getSourceAccountId(),
-            transaction.getTargetAccountId(),
+            transaction.getSourceAccountNumber(),
+            transaction.getTargetAccountNumber(),
             transaction.getAmount(),
             transaction.getFee(),
             transaction.getType(),

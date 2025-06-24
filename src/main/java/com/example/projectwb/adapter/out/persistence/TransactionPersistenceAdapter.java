@@ -21,18 +21,18 @@ public class TransactionPersistenceAdapter implements LoadTransactionPort, Regis
     private final TransactionMapper transactionMapper;
 
     @Override
-    public List<Transaction> findTransactionsByAccountId(Long accountId) {
+    public List<Transaction> findTransactionsByAccountNumber(String accountNumber) {
         List<TransactionJpaEntity> jpaEntities = transactionRepository
-            .findBySourceAccountIdOrTargetAccountIdOrderByTransactionDateDesc(accountId, accountId);
+            .findBySourceAccountNumberOrTargetAccountNumberOrderByTransactionDateDesc(accountNumber, accountNumber);
         return jpaEntities.stream()
             .map(transactionMapper::mapToDomain)
             .collect(Collectors.toList());
     }
 
     @Override
-    public BigDecimal getDailyTransactionSum(Long accountId, TransactionType type,
+    public BigDecimal getDailyTransactionSum(String accountNumber, TransactionType type,
         LocalDateTime startDate, LocalDateTime endDate) {
-        BigDecimal sum = transactionRepository.calculateDailySum(accountId, type, startDate,
+        BigDecimal sum = transactionRepository.calculateDailySum(accountNumber, type, startDate,
             endDate);
         return sum == null ? BigDecimal.ZERO : sum;
     }

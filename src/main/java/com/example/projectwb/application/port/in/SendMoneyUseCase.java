@@ -7,8 +7,8 @@ public interface SendMoneyUseCase {
     boolean sendMoney(SendMoneyCommand command);
 
     record SendMoneyCommand(
-        Long sourceAccountId,
-        Long targetAccountId,
+        String sourceAccountNumber,
+        String targetAccountNumber,
         BigDecimal amount
     ) {}
 }

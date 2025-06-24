@@ -5,5 +5,5 @@ import java.util.List;
 
 public interface GetAccountHistoryQuery {
 
-    List<Transaction> getAccountHistory(Long accountId);
+    List<Transaction> getAccountHistory(String accountNumber);
 }

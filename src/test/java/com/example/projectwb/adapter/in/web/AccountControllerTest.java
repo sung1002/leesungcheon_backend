@@ -123,7 +123,7 @@ class AccountControllerTest {
     @DisplayName("입금 API - 성공")
     void deposit_success() throws Exception {
         // given
-        TransactionDto.DepositRequest request = new TransactionDto.DepositRequest(1L,
+        TransactionDto.DepositRequest request = new TransactionDto.DepositRequest("1111-1111-1111",
             new BigDecimal("10000"));
 
         // when & then
@@ -137,8 +137,8 @@ class AccountControllerTest {
         verify(sendMoneyUseCase).sendMoney(commandCaptor.capture());
 
         SendMoneyUseCase.SendMoneyCommand capturedCommand = commandCaptor.getValue();
-        assertThat(capturedCommand.sourceAccountId()).isNull();
-        assertThat(capturedCommand.targetAccountId()).isEqualTo(1L);
+        assertThat(capturedCommand.sourceAccountNumber()).isNull();
+        assertThat(capturedCommand.targetAccountNumber()).isEqualTo("1111-1111-1111");
         assertThat(capturedCommand.amount()).isEqualByComparingTo(new BigDecimal("10000"));
     }
 
@@ -146,7 +146,7 @@ class AccountControllerTest {
     @DisplayName("출금 API - 성공")
     void withdraw_success() throws Exception {
         // given
-        TransactionDto.WithdrawRequest request = new TransactionDto.WithdrawRequest(1L,
+        TransactionDto.WithdrawRequest request = new TransactionDto.WithdrawRequest("1111-1111-1111",
             new BigDecimal("5000"));
 
         // when & then
@@ -160,8 +160,8 @@ class AccountControllerTest {
         verify(sendMoneyUseCase).sendMoney(commandCaptor.capture());
 
         SendMoneyUseCase.SendMoneyCommand capturedCommand = commandCaptor.getValue();
-        assertThat(capturedCommand.sourceAccountId()).isEqualTo(1L);
-        assertThat(capturedCommand.targetAccountId()).isNull();
+        assertThat(capturedCommand.sourceAccountNumber()).isEqualTo("1111-1111-1111");
+        assertThat(capturedCommand.targetAccountNumber()).isNull();
         assertThat(capturedCommand.amount()).isEqualByComparingTo(new BigDecimal("5000"));
     }
 
@@ -169,7 +169,7 @@ class AccountControllerTest {
     @DisplayName("이체 API - 성공")
     void transfer_success() throws Exception {
         // given
-        TransactionDto.TransferRequest request = new TransactionDto.TransferRequest(1L, 2L,
+        TransactionDto.TransferRequest request = new TransactionDto.TransferRequest("1111-1111-1111", "2222-2222-2222",
             new BigDecimal("3000"));
 
         // when & then
@@ -183,8 +183,8 @@ class AccountControllerTest {
         verify(sendMoneyUseCase).sendMoney(commandCaptor.capture());
 
         SendMoneyUseCase.SendMoneyCommand capturedCommand = commandCaptor.getValue();
-        assertThat(capturedCommand.sourceAccountId()).isEqualTo(1L);
-        assertThat(capturedCommand.targetAccountId()).isEqualTo(2L);
+        assertThat(capturedCommand.sourceAccountNumber()).isEqualTo("1111-1111-1111");
+        assertThat(capturedCommand.targetAccountNumber()).isEqualTo("2222-2222-2222");
         assertThat(capturedCommand.amount()).isEqualByComparingTo(new BigDecimal("3000"));
     }
 
@@ -192,22 +192,22 @@ class AccountControllerTest {
     @DisplayName("거래 내역 조회 API - 성공")
     void getHistory_success() throws Exception {
         // given
-        long accountId = 1L;
+        String accountNumber = "1111-1111-1111";
         Transaction transaction1 = Transaction.builder()
-            .id(101L).type(Transaction.TransactionType.DEPOSIT).targetAccountId(accountId)
+            .id(101L).type(Transaction.TransactionType.DEPOSIT).targetAccountNumber(accountNumber)
             .amount(new BigDecimal("10000")).transactionDate(
                 LocalDateTime.now())
             .build();
         Transaction transaction2 = Transaction.builder()
-            .id(102L).type(Transaction.TransactionType.WITHDRAWAL).sourceAccountId(accountId)
+            .id(102L).type(Transaction.TransactionType.WITHDRAWAL).sourceAccountNumber(accountNumber)
             .amount(new BigDecimal("2000")).transactionDate(LocalDateTime.now().minusHours(1))
             .build();
         List<Transaction> history = List.of(transaction1, transaction2);
 
-        given(getAccountHistoryQuery.getAccountHistory(eq(accountId))).willReturn(history);
+        given(getAccountHistoryQuery.getAccountHistory(eq(accountNumber))).willReturn(history);
 
         // when & then
-        mockMvc.perform(get("/api/v1/accounts/{accountId}/history", accountId))
+        mockMvc.perform(get("/api/v1/accounts/{accountNumber}/history", accountNumber))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$.length()").value(2))
