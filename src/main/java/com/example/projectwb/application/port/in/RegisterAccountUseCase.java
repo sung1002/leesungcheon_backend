@@ -8,6 +8,6 @@ public interface RegisterAccountUseCase {
 
     record RegisterAccountCommand(
         String owner,
-        String accountNuber
+        String accountNumber
     ) {}
 }

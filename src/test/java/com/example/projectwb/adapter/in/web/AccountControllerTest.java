@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -20,6 +21,7 @@ import com.example.projectwb.application.port.in.SendMoneyUseCase;
 import com.example.projectwb.application.port.in.SendMoneyUseCase.SendMoneyCommand;
 import com.example.projectwb.domain.Account;
 import com.example.projectwb.domain.Transaction;
+import com.example.projectwb.domain.exception.AccountNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -94,13 +96,27 @@ class AccountControllerTest {
     @DisplayName("계좌 삭제 API - 성공")
     void deleteAccount_success() throws Exception {
         // given
-        long accountId = 1L;
+        String accountNumber = "1111-1111-1111";
 
         // when & then
-        mockMvc.perform(delete("/api/v1/accounts/{accountId}", accountId))
+        mockMvc.perform(delete("/api/v1/accounts/{accountNumber}", accountNumber))
             .andExpect(status().isOk());
 
-        verify(deleteAccountUseCase).deleteAccount(eq(accountId));
+        verify(deleteAccountUseCase).deleteAccount(any(DeleteAccountUseCase.DeleteAccountCommand.class));
+    }
+
+    @Test
+    @DisplayName("계좌 삭제 실패 - 존재하지 않는 계좌번호")
+    void deleteAccount_fail_notFound() throws Exception {
+        // given
+        String nonExistentAccountNumber = "1111-1111-1111";
+
+        doThrow(new AccountNotFoundException("삭제할 계좌를 찾을 수 없습니다."))
+            .when(deleteAccountUseCase).deleteAccount(any(DeleteAccountUseCase.DeleteAccountCommand.class));
+
+        // when & then
+        mockMvc.perform(delete("/api/v1/accounts/{accountNumber}", nonExistentAccountNumber))
+            .andExpect(status().isNotFound());
     }
 
     @Test

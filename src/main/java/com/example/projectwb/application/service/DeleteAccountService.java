@@ -18,9 +18,9 @@ public class DeleteAccountService implements DeleteAccountUseCase {
     private final LoadAccountPort loadAccountPort;
 
     @Override
-    public void deleteAccount(Long accountId) {
-        Account account = loadAccountPort.loadAccount(accountId)
-            .orElseThrow(() -> new AccountNotFoundException("삭제할 계좌를 찾을 수 없습니다: " + accountId));
+    public void deleteAccount(DeleteAccountCommand command) {
+        Account account = loadAccountPort.loadAccountByNumber(command.accountNumber())
+            .orElseThrow(() -> new AccountNotFoundException("삭제할 계좌를 찾을 수 없습니다: " + command.accountNumber()));
         deleteAccountPort.deleteAccount(account.getId());
     }
 }

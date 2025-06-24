@@ -4,6 +4,7 @@ import com.example.projectwb.adapter.in.web.dto.AccountDto;
 import com.example.projectwb.adapter.in.web.dto.TransactionDto;
 import com.example.projectwb.adapter.in.web.dto.TransactionDto.HistoryResponse;
 import com.example.projectwb.application.port.in.DeleteAccountUseCase;
+import com.example.projectwb.application.port.in.DeleteAccountUseCase.DeleteAccountCommand;
 import com.example.projectwb.application.port.in.GetAccountHistoryQuery;
 import com.example.projectwb.application.port.in.RegisterAccountUseCase;
 import com.example.projectwb.application.port.in.SendMoneyUseCase;
@@ -54,9 +55,11 @@ public class AccountController {
 
     @Operation(summary = "계좌 삭제", description = "기존 계좌를 삭제합니다.")
     @ApiResponse(responseCode = "200", description = "계좌 삭제 성공")
-    @DeleteMapping("/{accountId}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable Long accountId) {
-        deleteAccountUseCase.deleteAccount(accountId);
+    @DeleteMapping("/{accountNumber}")
+    public ResponseEntity<Void> deleteAccount(@PathVariable String accountNumber) {
+        deleteAccountUseCase.deleteAccount(
+            new DeleteAccountCommand(accountNumber)
+        );
         return ResponseEntity.ok().build();
     }
 

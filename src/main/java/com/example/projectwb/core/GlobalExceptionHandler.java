@@ -4,6 +4,7 @@ import com.example.projectwb.adapter.in.web.dto.ErrorResponse;
 import com.example.projectwb.adapter.out.persistence.entity.exception.AccountEntityNotFoundException;
 import com.example.projectwb.domain.exception.AccountNotFoundException;
 import com.example.projectwb.domain.exception.DailyLimitException;
+import com.example.projectwb.domain.exception.DuplicateAccountNumberException;
 import com.example.projectwb.domain.exception.InsufficientFundsException;
 import com.example.projectwb.domain.exception.InvalidTransactionRequestException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,6 +57,13 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
             "Bad Request", errorMessage, request.getRequestURI());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DuplicateAccountNumberException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResourceException(DuplicateAccountNumberException ex, HttpServletRequest request) {
+        log.warn("DuplicateAccountNumberException: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), "Conflict", ex.getMessage(), request.getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     // 500 - 처리되지 않은 모든 예외

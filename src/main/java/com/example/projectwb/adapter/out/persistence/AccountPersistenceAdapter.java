@@ -29,6 +29,12 @@ public class AccountPersistenceAdapter implements LoadAccountPort, UpdateAccount
     }
 
     @Override
+    public Optional<Account> loadAccountByNumber(String accountNumber) {
+        return accountRepository.findByAccountNumber(accountNumber)
+            .map(accountMapper::mapToDomain);
+    }
+
+    @Override
     public void updateAccount(Account account) {
         AccountJpaEntity entity = accountRepository.findById(account.getId())
             .orElseThrow(AccountEntityNotFoundException::new);
